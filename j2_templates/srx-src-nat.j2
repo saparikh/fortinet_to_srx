@@ -1,0 +1,39 @@
+{% for pool in data['src_nat_pools'] %}
+{% if pool['prefix'] is defined %}
+set security nat source pool {{ pool['name'] }} address {{ pool['prefix'] }}
+{% else %}
+set security nat source pool {{ pool['name'] }} address {{ pool['start_ip'] }} to {{ pool['end_ip'] }}
+{% endif %}
+{% endfor %}
+set security nat source pool-utilization-alarm raise-threshold 85 clear-threshold 60
+
+{% for rule_set in data['src_nat_rules'] %}
+set security nat source rule-set OUTBOUND-NAT-{{ rule_set['src_zone'] }}-{{ rule_set['dst_zone'] }} from zone {{ rule_set['src_zone'] }}
+set security nat source rule-set OUTBOUND-NAT-{{ rule_set['src_zone'] }}-{{ rule_set['dst_zone'] }} to zone {{ rule_set['dst_zone'] }}
+{% for rule in rule_set['rules'] %}
+set security nat source rule-set OUTBOUND-NAT-{{ rule_set['src_zone'] }}-{{ rule_set['dst_zone'] }} rule {{ rule['name'] }} match source-address-name {{ rule['src_addr'] }}
+set security nat source rule-set OUTBOUND-NAT-{{ rule_set['src_zone'] }}-{{ rule_set['dst_zone'] }} rule {{ rule['name'] }} match destination-address {{ rule['dst_addr'] }}
+set security nat source rule-set OUTBOUND-NAT-{{ rule_set['src_zone'] }}-{{ rule_set['dst_zone'] }} rule {{ rule['name'] }} then source-nat pool {{ rule['pool'] }}
+{% endfor %}
+{% endfor %}
+
+{#
+sample data:
+
+data:
+    src_nat_pools:
+    - name: pool1
+      start_ip: 1.1.1.1
+      end_ip: 1.1.1.10
+    - name: pool2
+      prefix: 10.1.1.0/24
+    src_nat_rules:
+        - src_zone: zone1
+          dst_zone: zone0
+          rules:
+            - src_addr: INSIDE
+              dst_addr: 0.0.0.0/0
+              pool: pool1
+              name: rule1
+
+#}

@@ -1,0 +1,72 @@
+{#
+there isn't a peer specific command to set next-hop-self in JunOS, so using this policy to do that.
+if the nhop_self flag is set for a peer, will add `export NEXT-HOP-SELF` as one of the export policies
+todo: need to check if this MUST BE the first policy, since it falls through to the next-policy if a specific output
+    policy is set for the peer. some articles claim that next-policy is a default action, so if there is in a
+    list of policies, it will get evaluated will get evalue
+Reference for neighbor config options
+https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/neighbor-edit-protocols-bgp.html
+#}
+
+set policy-options policy-statement NEXT-HOP-SELF term NHS then next-hop self
+set policy-options policy-statement NEXT-HOP-SELF term NHS then next policy
+
+set routing-options autonomous-system {{ data['bgp']['local_as'] }}
+set routing-options router-id {{  data['bgp']['router_id'] }}
+
+set protocols bgp path-selection always-compare-med
+set protocols bgp advertise-inactive
+{% if data['bgp']['always_comp_med'] == 'enable' %}
+set protocols bgp path-selection always-compare-med
+{% endif %}
+
+{% if data['bgp']['bestpath_aspath_ignore'] == 'enable' %}
+set protocols bgp path-selection as-path-ignore
+{% endif %}
+
+{% if data['bgp']['ibgp_mp'] == 'enable' or data['bgp']['ebgp_mp'] == 'enable' %}
+set protocols bgp multipath multiple-as
+{% endif %}
+{% for peer in data['bgp']['peers'] %}
+set protocols bgp neighbor {{ peer['peer_ip'] }} description "{{ peer['description']}}"
+set protocols bgp neighbor {{ peer['peer_ip'] }} peer-as {{ peer['remote_as'] }}
+{% if peer['nhop_self'] == 'enable' %}
+set protocols bgp neighbor {{ peer['peer_ip'] }} export NEXT-HOP-SELF
+{% endif %}
+{% if peer['local_as_peer'] != 0 %}
+set protocols bgp neighbor {{ peer['peer_ip'] }} local-as {{ peer['remote_as'] }}
+{% endif %}
+
+{% if data['bgp']['enforce_first_as'] == 'enable' %}
+set protocols bgp neighbor {{ peer['peer_ip'] }} enforce-first-as
+{% endif %}
+{% endfor %}
+
+{% for redis in data['bgp']['redistribute'] %}
+set policy-options policy-statement {{ redis['protocol'] }}_to_bgp term t1 from protocol {{ redis['protocol'] }}
+set policy-options policy-statement {{ redis['protocol'] }}_to_bgp term t1 then accept
+set protocols bgp export {{ redis['protocol'] }}_to_bgp
+{% endfor %}
+
+{#
+sample input:
+
+data:
+    bgp:
+        ibgp_mp: enable
+        ebgp_mp: enable
+        router_id: 1.1.1.1
+        local_as: 65001
+        bestpath_aspath_ignore: disable
+        always_comp_med: enable
+        peers:
+            - peer_ip: 1.1.1.2
+              remote_as: 65002
+              description: test
+              nhop_self: enable
+            - peer_ip: 2.1.1.1
+              remote_as: 65003
+              nhop_self: disable
+              local_as_peer: 65003
+
+#}

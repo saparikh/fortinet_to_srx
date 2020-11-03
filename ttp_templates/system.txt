@@ -1,0 +1,11 @@
+<group name="system">
+config system global {{ _start_ }}
+    set hostname {{ hostname | macro("clean_str") }}
+end {{ _end_ }}
+</group>
+<group name="dns">
+config system dns {{ _start_ }}
+    set primary {{ primary }}
+    set secondary {{ secondary }}
+end {{ _end_ }}
+</group>

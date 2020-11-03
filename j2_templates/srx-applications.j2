@@ -1,0 +1,67 @@
+{#assumptions#}
+{#   applications either just have an IP protocol or IP protocol + destination port#}
+{#   source ports are not used#}
+
+{% for app in data['applications'] %}
+{% for term in app['terms'] %}
+{% if term['dport'] is defined %}
+set applications application {{ app['name'] }} term {{ term['name'] }} protocol {{ term['protocol'] }} destination-port {{ term['dport'] }}
+{% endif %}
+{% if term['sport'] is defined %}
+set applications application {{ app['name'] }} term {{ term['name'] }} protocol {{ term['protocol'] }} source-port {{ term['sport'] }}
+{% endif %}
+{% if term['dport'] is not defined and term['sport'] is not defined %}
+set applications application {{ app['name'] }} term {{ term['name'] }} protocol {{ term['protocol'] }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+{% for app_set in data['application-sets'] %}
+{% for app in app_set['applications'] %}
+set applications application-set {{ app_set['name'] }} application {{ app }}
+{% endfor %}
+{% endfor %}
+
+{#sample input#}
+{#data:#}
+{#    applications:#}
+{#        - name: DNS#}
+{#          terms:#}
+{#            - name: t1#}
+{#              protocol: tcp#}
+{#              dport: 53#}
+{#            - name: t2#}
+{#              protocol: udp#}
+{#              dport: 53#}
+{#        - name: ICMP-ALL#}
+{#          terms:#}
+{#            - name: t1#}
+{#              protocol: icmp#}
+{#        - name: WEB#}
+{#          terms:#}
+{#            - name: t1#}
+{#              protocol: tcp#}
+{#              dport: 80#}
+{#            - name: t2#}
+{#              protocol: tcp#}
+{#              dport: 443#}
+{#        - name: MAIL#}
+{#          terms:#}
+{#            - name: t1#}
+{#              protocol: tcp#}
+{#              dport: 25#}
+{#        - name: TELNET#}
+{#          terms:#}
+{#            - name: t1#}
+{#              protocol: tcp#}
+{#              dport: 23#}
+{#    application-sets:#}
+{#        - name: REQUIRED#}
+{#          applications:#}
+{#            - DNS#}
+{#            - ICMP-ALL#}
+{#            - WEB#}
+{#            - MAIL#}
+{#        - name: DENY#}
+{#          applications:#}
+{#            - TELNET#}

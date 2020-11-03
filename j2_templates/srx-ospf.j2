@@ -1,0 +1,67 @@
+set protocols ospf overload timeout 60
+set protocols ospf graceful-restart restart-duration 60
+set protocols ospf reference-bandwidth {{ data['ospf']['ref_bw'] }}
+
+{% for interface in data['ospf']['interfaces'] %}
+set protocols ospf area {{ interface['area'] }} interface {{ interface['interface'] }} interface-type {{ interface['network'] }}
+{% endfor %}
+
+{% for area in data['ospf']['areas'] %}
+{% if area['area_type'] == 'nssa' %}
+set protocols ospf area {{ area['area'] }} nssa default-lsa default-metric {{ area['nssa_default_metric'] }}
+set protocols ospf area {{ area['area'] }} nssa default-lsa metric-type {{ area['nssa_default_metric_type'] }}
+set protocols ospf area {{ area['area'] }} nssa default-lsa type-7
+{% if area['stub_type'] == 'no-summary' %}
+set protocols ospf area {{ area['area'] }} nssa no-summaries
+{% endif %}
+{% endif %}
+{% endfor %}
+
+{% if data['ospf']['dist_list_in'] is defined %}
+set protocols ospf import {{ data['ospf']['dist_list_in'] }}
+{% endif %}
+
+
+{% for redis in data['ospf']['redistribute'] %}
+set policy-options policy-statement {{ redis['protocol'] }}_to_ospf term t1 from protocol {{ redis['protocol'] }}
+set policy-options policy-statement {{ redis['protocol'] }}_to_ospf term t1 then external type {{ redis['metric_type'] }}
+set policy-options policy-statement {{ redis['protocol'] }}_to_ospf term t1 then accept
+set protocols ospf export {{ redis['protocol'] }}_to_ospf
+{% endfor %}
+
+{#set protocols ospf export REDISTRIBUTE-INTO-OSPF#}
+{#set protocols ospf import FILTER-INTO-OSPF#}
+
+{#
+sample input:
+
+data:
+    ospf:
+        router_id: 1.1.1.1
+        dist_list_in: FOO
+        ref_bw: 1g
+        areas:
+            - area: 0.0.0.1
+              area_type: nssa
+              stub_type: summary
+              nssa_default_metric_type: 2
+              nssa_default_metric: 10
+              nssa_redis: enable
+        interfaces:
+            - interface: xe-0/0/0.75
+              network: point-to-point
+              area: 0.0.0.1
+            - interface: xe-0/0/0.76
+              network: point-to-point
+              area: 0.0.0.1
+         redistribute:
+            - protocol: direct
+              status: enable
+              # status is not checked, since TTP template parsing ensures that protocols where it is set to disable are ignored during parsing
+              metric_type: 2
+            - protocol: bgp
+              status: enable
+              metric_type: 2
+
+
+#}

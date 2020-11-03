@@ -1,0 +1,54 @@
+<group name="bgp">
+config router bgp {{ _start_ }}
+    set as {{ local_as }}
+    set router-id {{ router_id }}
+    set always-compare-med {{ always_comp_med }}
+    set bestpath-as-path-ignore {{ bestpath_aspath_ignore }}
+    set client-to-client-reflection {{ client_client_rr }}
+    set deterministic-med {{ det_med }}
+    set ebgp-multipath {{ ebgp_mp }}
+    set ibgp-multipath {{ ibgp_mp }}
+    set enforce-first-as {{ enforce_first_as }}
+    set cluster-id {{ cluster_id }}
+    set confederation-identifier {{ confed_id }}
+    <group name="peers">
+    config neighbor {{ _start_ }}
+        <group name="peer*" contains="shutdown">
+        edit {{ peer_ip | chain("clean_phrase") | _start_ }}
+            set allowas-in-enable {{ allowas_in }}
+            set activate {{ ipv4_af }}
+            set activate6 {{ ipv6_af }}
+            set capability-default-originate {{ default_originate }}
+            set next-hop-self {{ nhop_self }}
+            set passive {{ passive }}
+            set remove-private-as {{ remove_private_as }}
+            set shutdown {{ shutdown | contains('disable') }}
+            set description {{ description }}
+            set distribute-list-in {{ dist_list_in | macro("ignore_empty") }}
+            set distribute-list-out {{ dist_list_out | macro("ignore_empty") }}
+            set filter-list-in {{ filter_list_in | macro("ignore_empty") }}
+            set filter-list-out {{ filter_list_out | macro("ignore_empty") }}
+            set interface {{ interface | macro("ignore_empty") }}
+            set prefix-list-in {{ prefix_list_in | macro("ignore_empty")}}
+            set prefix-list-out {{ prefix_list_out | macro("ignore_empty")}}
+            set remote-as {{ remote_as }}
+            set local-as {{ local_as_peer }}
+            set route-map-in {{ route_map_in | macro("ignore_empty") }}
+            set route-map-out {{ route_map_out | macro("ignore_empty") }}
+            set send-community {{ send_community }}
+            set unsuppress-map {{ unsupress_map | macro("ignore_empty")}}
+            set update-source {{ update_src | macro("ignore_empty")}}
+            set weight {{ weight }}
+            set route-reflector-client {{ rr_client }}
+        next {{ _end_ }}
+        </group>
+    end {{ _end_ }}
+    </group>
+    <group name="redistribute*" contains="status">
+    config redistribute {{ protocol | chain("clean_phrase") | resub(old='^connected$', new='direct') | _start_ }}
+        set status {{ status | contains('enable') }}
+        set route-map {{ route_map | chain("clean_phrase") | macro("ignore_empty") }}
+    end {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

@@ -1,0 +1,25 @@
+{% for route in data['static_routes'] %}
+{% if route['discard'] == 'enable' %}
+set routing-options static route {{ route['prefix'] }} discard
+{% elif route['next_hop_interface'] is defined %}
+set routing-options static route {{ route['prefix'] }} next-hop {{ route['next_hop_interface'] }}
+{% else %}
+set routing-options static route {{ route['prefix'] }} next-hop {{ route['next_hop_ip'] }}
+{% endif %}
+{% endfor %}
+
+{#
+sample input
+
+data:
+    static_routes:
+        - id: 0
+          prefix: 1.1.1.0/24
+          discard: enable
+        - id: 1
+          prefix: 10.1.1.0/24
+          discard: disable
+          next_hop_ip: 1.1.2.1
+          next_hop_interface: reth0.1
+
+#}

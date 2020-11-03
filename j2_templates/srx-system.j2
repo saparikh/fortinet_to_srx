@@ -1,0 +1,8 @@
+set groups node0 system host-name {{ data['hostname'] }}
+set apply-groups node0
+set system time-zone UTC
+set system services ssh root-login deny
+set system services netconf ssh
+{% for server in data['dns'] %}
+set system name-server {{ server }}
+{% endfor %}

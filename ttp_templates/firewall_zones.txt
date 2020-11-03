@@ -1,0 +1,11 @@
+<group name="fw_zones" macro="skip_empty">
+config system zone {{ _start_ }}
+    <group name="zone*">
+    edit {{ name | chain("clean_phrase") | _start_ }}
+        set intrazone {{ intrazone_allow }}
+        set interface {{ interfaces | ORPHRASE | split(" ") }}
+        set description {{ description | chain("clean_phrase") }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

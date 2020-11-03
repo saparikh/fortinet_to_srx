@@ -1,0 +1,29 @@
+<group name="route_maps">
+config router route-map {{ _start_ }}
+    <group name="route_map*">
+    edit {{ name | chain("clean_phrase") | _start_ }}
+        <group name="rules*">
+        config rule {{ _start_ }}
+            <group name="rule">
+            edit {{ id | _start_ }}
+                set action {{ action }}
+                set match-ip-address {{ ip }}
+                set match-tag {{ match_tag }}
+                set match-as-path {{ match_aspath }}
+                set set-tag {{ set_tag }}
+                set set-metric {{ set_metric }}
+                set set-local-preference {{ set_local_pref }}
+                set set-weight {{ set_weight }}
+                set set-route-tag {{ set_route_tag }}
+                set set-aspath-action {{ aspath_action }}
+                set set-community-delete {{ delete_community_set }}
+                set set-community {{ set_community_set | chain("clean_list") }}
+                set set-community-additive {{ set_community_additive }}
+            next {{ _end_ }}
+            </group>
+        end {{ _end_ }}
+        </group>
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

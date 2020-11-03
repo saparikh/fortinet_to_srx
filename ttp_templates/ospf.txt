@@ -1,0 +1,62 @@
+<group name="ospf">
+config router ospf {{ _start_ }}
+    set auto-cost-ref-bandwidth {{ ref_bw }}
+    set default-information-originate {{ default_originate | contains("enable") }}
+    set default-information-metric {{ default_originate_metric }}
+    set default-information-metric-type {{ default_originate_metric_type }}
+    set default-information-route-map {{ default_originate_routemap | chain("clean_phrase") | macro("ignore_empty") }}
+    set default-metric {{ default_rt_metric }}
+    set rfc1583-compatible {{ rfc1583_compat | contains("enable") }}
+    set router-id {{ router_id }}
+    set distribute-list-in {{ dist_list_in | chain("clean_phrase") | macro("ignore_empty") }}
+    set distribute-route-map-in {{ dist_routemap_in | chain("clean_phrase") | macro("ignore_empty") }}
+    <group name="areas*" macro="skip_empty">
+    config area {{ _start_ }}
+        <group>
+        edit {{ area | _start_ }}
+            set stub-type {{ stub_type }}
+            set type {{ area_type }}
+            set nssa-default-information-originate {{ nssa_default_originate | contains("enable") }}
+            set nssa-default-information-originate-metric {{ nssa_default_metric }}
+            set nssa-default-information-originate-metric-type {{ nssa_default_metric_type }}
+            set nssa-redistribution {{ nssa_redis }}
+        next {{ _end_ }}
+        </group>
+    end {{ _end_ }}
+    </group>
+    <group name="interfaces*" contains="status" macro="skip_empty">
+    config ospf-interface {{ _start_ }}
+        <group>
+        edit {{ name | chain("clean_phrase") | _start_ }}
+            set interface {{ interface | chain("clean_phrase")}}
+            set ip {{ ip | exclude("0.0.0.0") }}
+            set cost {{ cost | exclude("0") }}
+            set priority {{ priority }}
+            set mtu {{ mtu | exclude("0") }}
+            set network-type {{ network }}
+            set status {{ status | contains("enable") }}
+        next {{ _end_ }}
+        </group>
+    end {{ _end_ }}
+    </group>
+    <group name="networks*" macro="skip_empty">
+    config network {{ _start_ }}
+        <group>
+        edit {{ id | _start_ }}
+            set prefix {{ prefix | ORPHRASE | to_ip | with_prefixlen }}
+            set area {{ area }}
+        next {{ _end_ }}
+        </group>
+    end {{ _end_ }}
+    </group>
+    <group name="redistribute*" contains="status">
+    config redistribute {{ protocol | chain("clean_phrase") | resub(old='^connected$', new='direct') | _start_ }}
+        set status {{ status | contains('enable') }}
+        set route-map {{ route_map | chain("clean_phrase") | macro("ignore_empty") }}
+        set metric-type {{ metric_type }}
+        set metric {{ metric | exclude("0") }}
+        set tag {{ tag | exclude("0")}}
+    end {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

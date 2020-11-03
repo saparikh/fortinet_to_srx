@@ -1,0 +1,26 @@
+<group name="fw_policy">
+config firewall policy {{ _start_ }}
+    <group name="rules">
+    edit {{ id | _start_ }}
+        set name {{ name | chain("clean_phrase") }}
+        set srcintf {{ in_zone | chain("clean_list") }}
+        set dstintf {{ out_zone | chain("clean_list") }}
+        set srcaddr {{ src_addr | chain("clean_list") }}
+        set dstaddr {{ dst_addr | chain("clean_list") }}
+        set internet-service {{ app_dst_rec }}
+        set internet-service-id {{ app_dst_list | ORPHRASE | split(" ") }}
+        set internet-service-src {{ app_src_rec }}
+        set internet-service-src-id {{ app_src_list | ORPHRASE | split(" ") }}
+        set action {{ action }}
+        set service {{ apps | chain("clean_list") }}
+        set comments {{ comment | chain("clean_phrase") }}
+        set nat {{ nat }}
+        set match-vip {{ match_vip }}
+        set match-vip-only {{ match_vip_only }}
+        set status {{ status | default("enable") }}
+        set ippool {{ src_nat_enable }}
+        set poolname {{ src_nat_pool | macro("clean_str") }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

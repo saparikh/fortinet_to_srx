@@ -1,0 +1,11 @@
+<group name="vip_groups">
+config firewall vipgrp {{ _start_ }}
+    <group name="group">
+    edit {{ name | chain("clean_phrase") | _start_ }}
+        set interface {{ interface }}
+        set comments {{ comment | macro("clean_str")  }}
+        set member {{ vips | chain("clean_list") }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

@@ -1,0 +1,71 @@
+{# need to set the number of reth interfaces based on the number of port-channel interfaces #}
+set chassis cluster reth-count {{ data['interfaces']['portchannel_count'] }}
+
+{#loopback interface#}
+{#assumptions:#}
+{#   only 1 loopback address exists #}
+{#   only primary IP address is defined #}
+{% if data['interfaces']['loopback'] is defined %}
+set interfaces lo0 unit 0 family inet address {{  data['interfaces']['loopback']['primary_ip'] }}
+{% endif %}
+
+{#physical ports#}
+{#assumptions:#}
+{#   only primary IP address is defined #}
+{#   if IP address is defined, then it will always be under unit 0 #}
+{#   sub-interfaces are handled seperately #}
+
+{%  for port in data['interfaces']['ports'] %}
+set interfaces {{ port['name'] }} description "{{ port['description']}}"
+{% if port['portchannel'] is defined %}
+set interfaces {{ port['name'] }} gigether-options redundant-parent {{ port['portchannel'] }}
+{% endif %}
+{% if port['primary_ip'] is defined %}
+set interfaces {{ port['name'] }} unit 0 family inet address {{  port['primary_ip'] }}
+{% endif %}
+{% endfor %}
+
+{#port channel aka aggregate ethernet aka redundant ethernet interfaces #}
+{# assumptions: #}
+{#   no sub-interfaces on port-channels #}
+{#   only primary IP address #}
+
+{% for portchannel in data['interfaces']['portchannels'] %}
+set interfaces reth{{ portchannel['id'] }} description "{{ portchannel['description'] }}"
+set interfaces reth{{ portchannel['id'] }} redundant-ether-options redundancy-group {{ portchannel['id'] }}
+set interfaces reth{{ portchannel['id'] }} redundant-ether-options lacp active
+set interfaces reth{{ portchannel['id'] }} unit 0 description "{{ portchannel['description'] }}"
+set interfaces reth{{ portchannel['id'] }} unit 0 family inet address {{ portchannel['primary_ip'] }}
+{% endfor %}
+
+{# sub interfaces#}
+{# assumptions:#}
+{#   only primary ip address #}
+{#   unit id = vlan id #}
+
+{% for subint in data['interfaces']['sub_interfaces'] %}
+set interfaces {{ subint['parent'] }} unit {{ subint['vlan_id'] }} description "{{ subint['description'] }}"
+set interfaces {{ subint['parent'] }} unit {{ subint['vlan_id'] }} family inet address {{ subint['primary_ip'] }}
+{% endfor %}
+
+{#sample input dict#}
+{##}
+{#data:#}
+{#    ports:#}
+{#        - name: xe-0/0/1#}
+{#          primary_ip: 1.1.1.1/31#}
+{#        - name: xe-0/0/2#}
+{#          portchannel: reth0#}
+{#        - name: xe-0/0/3#}
+{#    portchannel:#}
+{#        - name: reth0#}
+{#          id: 0#}
+{#          description: reth0#}
+{#          primary_ip: 2.1.1.1/31#}
+{#    sub_interfaces:#}
+{#        - vlan_id: 75#}
+{#          parent: xe-0/0/3#}
+{#          primary_ip: 3.1.1.1/24#}
+{#    loopback:#}
+{#        primary_ip: 10.1.1.1/32#}
+{#    portchannel_count: 1#}

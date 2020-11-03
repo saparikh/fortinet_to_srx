@@ -1,0 +1,12 @@
+<group name="nat">
+config firewall ippool {{ _start_ }}
+    <group name="pools">
+    edit {{ name | chain("clean_phrase") | _start_ }}
+        set type {{ type }}
+        set startip {{ start_ip }}
+        set endip {{ end_ip }}
+        set associated-interface {{ interface | chain("clean_list") }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

@@ -1,0 +1,19 @@
+<group name="static_routes">
+config router static {{ _start_ }}
+    <group name="routes*" contains="status">
+    edit {{ id | _start_ }}
+        set status {{ status | contains("enable") }}
+        set dst {{ prefix | ORPHRASE | macro("match_ip_or_any") }}
+        set gateway {{ next_hop_ip }}
+        set distance {{ admin_distance }}
+        set weight {{ weight }}
+        set priority {{ route_priority }}
+        set device {{ next_hop_interface | macro("clean_str") }}
+        set vrf {{ vrf }}
+        set dstaddr {{ address_group | chain("clean_phrase") }}
+        set comment {{ description | chain("clean_phrase") }}
+        set blackhole {{ discard }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

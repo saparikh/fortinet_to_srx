@@ -1,0 +1,17 @@
+<group name="fw_service_custom">
+config firewall service custom {{ _start_ }}
+    <group name="svc_name">
+    edit {{ name | chain("clean_phrase") | _start_ }}
+        set protocol {{ protocol }}
+        set tcp-portrange {{ tcp_range | ORPHRASE | split(" ") }}
+        set udp-portrange {{ udp_range | ORPHRASE | split(" ") }}
+        set protocol-number {{ protocol_num }}
+        set icmptype {{ icmp_type }}
+        set icmpcode {{ icmp_code }}
+        set iprange {{ iprange }}
+        set application {{ app_id }}
+        set app-category {{ app_category_id }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

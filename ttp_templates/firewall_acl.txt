@@ -1,0 +1,14 @@
+<group name="fw_acl">
+config firewall acl {{ _start_ }}
+    <group name="acl_id">
+    edit {{ id | _start_ }}
+        set status {{ status }}
+        set comments {{ comment | macro("clean_str") }}
+        set interface {{ interface | macro("clean_str") }}
+        set srcaddr {{ src_address_list | chain("clean_phrase") }}
+        set dstaddr {{ dst_address_list | chain("clean_phrase") }}
+        set service {{ app_list | chain("clean_phrase") }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

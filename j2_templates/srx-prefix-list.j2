@@ -1,0 +1,27 @@
+{% for prefix_list in data['prefix_lists'] %}
+{% for entry in prefix_list['entries'] %}
+set policy-options prefix-list {{ prefix_list['name'] }} {{ entry['prefix'] }}
+{% endfor %}
+{% endfor %}
+
+{% for prefix_list in data['prefix_lists'] %}
+{% for entry in prefix_list['entries'] %}
+set policy-options policy-statement {{ prefix_list['name'] }} term {{ entry['id'] }} from route-filter {{ entry['prefix'] }} exact
+set policy-options policy-statement {{ prefix_list['name'] }} term {{ entry['id'] }} then {{ entry['action'] }}
+{% endfor %}
+{% endfor %}
+
+
+{#
+sample input
+
+data:
+    prefix_lists:
+        - name: LIST1
+          entries:
+            - id: 1
+              prefix: 1.1.1.0/24
+            - id: 2
+              prefix: 1.1.0.0/16
+
+#}

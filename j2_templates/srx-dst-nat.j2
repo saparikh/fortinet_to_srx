@@ -1,0 +1,33 @@
+{% for pool in data['dst_nat_pools'] %}
+set security nat destination pool {{ pool['name'] }} address {{ pool['mapped_ip'] }}/32
+{% endfor %}
+
+{% for rule_set in data['dst_nat_rules'] %}
+set security nat destination rule-set INBOUND-NAT-{{ rule_set['src_zone'] }} from zone {{ rule_set['src_zone'] }}
+{% for rule in rule_set['rules'] %}
+set security nat destination rule-set INBOUND-NAT-{{ rule_set['src_zone'] }} rule {{ rule['name'] }} match source-address {{ rule['src_addr'] }}
+set security nat destination rule-set INBOUND-NAT-{{ rule_set['src_zone'] }} rule {{ rule['name'] }} match destination-address-name {{ rule['dst_addr'] }}
+set security nat destination rule-set INBOUND-NAT-{{ rule_set['src_zone'] }} rule {{ rule['name'] }} then destination-nat pool {{ rule['pool'] }}
+{% endfor %}
+{# not sure if this is needed, but hardcoding it for now #}
+set security nat destination rule-set INBOUND-NAT-{{ rule_set['src_zone'] }} rule NO-NAT match source-address 0.0.0.0/0
+set security nat destination rule-set INBOUND-NAT-{{ rule_set['src_zone'] }} rule NO-NAT match destination-address 0.0.0.0/0
+set security nat destination rule-set INBOUND-NAT-{{ rule_set['src_zone'] }} rule NO-NAT then destination-nat off
+{% endfor %}
+
+{#
+sample data:
+
+data:
+    dst_nat_pools:
+        - name: pool1
+          ext_ip: 1.1.1.1
+          mapped_ip: 1.1.1.10
+    dst_nat_rules:
+        - src_zone: zone1
+          rules:
+            - src_addr: 0.0.0.0/0
+              dst_addr: VIP1
+              pool: pool1
+              name: rule1
+#}

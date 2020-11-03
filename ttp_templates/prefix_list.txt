@@ -1,0 +1,20 @@
+<group name="prefix_lists">
+config router prefix-list {{ _start_ }}
+    <group name="prefix_list">
+    edit {{ name | chain("clean_phrase") | _start_ }}
+        <group name="rules">
+        config rule {{ _start_ }}
+            <group name="rule">
+            edit {{ id | _start_ }}
+                set action {{ action }}
+                set prefix {{ prefix | ORPHRASE | macro("match_ip_or_any") }}
+                set ge {{ ge }}
+                set le {{ le }}
+            next {{ _end_ }}
+            </group>
+        end {{ _end_ }}
+        </group>
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

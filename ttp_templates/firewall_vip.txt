@@ -1,0 +1,16 @@
+<group name="vips">
+config firewall vip {{ _start_ }}
+    <group name="vip">
+    edit {{ name | chain("clean_phrase") | _start_ }}
+        set comment {{ comment | macro("clean_str")  }}
+        set type {{ type }}
+        set extip {{ ext_ip }}
+        set extintf {{ ext_intf | chain("clean_list") }}
+        set portforward {{ portforward }}
+        set mappedip {{ mapped_ip | macro("build_list") }}
+        set src-filter {{ src_filter | ORPHRASE }}
+        set protocol {{ protocol }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

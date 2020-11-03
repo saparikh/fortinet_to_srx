@@ -1,0 +1,22 @@
+<group name="fw_interfaces">
+config system interface {{ _start_ }}
+    <group name="interfaces*" macro="skip_empty">
+    edit {{ name | chain("clean_phrase") | _start_ }}
+        set vdom {{ vdom | macro("clean_str") }}
+        set mode {{ mode }}
+        set role {{ role }}
+        set allowaccess {{ allowed_service | ORPHRASE | split(" ") }}
+        set type {{ type | default("logical") }}
+        set mtu {{ mtu }}
+        set ip {{ ip | ORPHRASE | to_ip | with_prefixlen }}
+        set alias {{ alias | chain("clean_phrase") }}
+        set vlanid {{ access_vlan }}
+        set interface {{ parent_interface | chain("clean_list") }}
+        set status {{ state | default("up") }}
+        set vrf {{ vrf }}
+        set member {{ port_channel_members | chain("clean_list") }}
+        set description {{ description | chain("clean_phrase") }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

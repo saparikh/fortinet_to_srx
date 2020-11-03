@@ -1,0 +1,13 @@
+<group name="fw_address_group">
+config firewall addrgrp {{ _start_ }}
+    <group name="addrgrps*" macro="skip_empty">
+    edit {{ name | chain("clean_phrase") | _start_ }}
+        set member {{ addresses | chain("clean_list") }}
+        set comment {{ comment | macro("clean_str") }}
+        set exclude {{ allow_exclusions }}
+        set exclude-member {{ exclude_addresses | chain("clean_list") }}
+        set allow-routing {{ allow_static_route }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

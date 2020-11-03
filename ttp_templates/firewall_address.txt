@@ -1,0 +1,16 @@
+<group name="fw_address">
+config firewall address {{ _start_ }}
+    <group name="addresses*" macro="skip_empty">
+    edit {{ name | chain("clean_phrase") | _start_ }}
+        set subnet {{ ip | PHRASE | to_ip | with_prefixlen }}
+        set associated-interface {{ interface }}
+        set type {{ type }}
+        set start-ip {{ start_ip }}
+        set end-ip {{ end_ip }}
+        set interface {{ interface }}
+        set subnet-name {{ subnet_name }}
+        set allow-routing {{ allow_static_route }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

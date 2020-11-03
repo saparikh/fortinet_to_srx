@@ -1,0 +1,54 @@
+{% for rule in data['fw_policy'] %}
+{% for addr in rule['match_rules']['src_addrs'] %}
+set security policies from-zone {{ rule['src_zone'] }} to-zone {{ rule['dst_zone'] }} policy {{ rule['name'] }} match source-address {{ addr }}
+{% endfor %}
+{% for addr in rule['match_rules']['dst_addrs'] %}
+set security policies from-zone {{ rule['src_zone'] }} to-zone {{ rule['dst_zone'] }} policy {{ rule['name'] }} match destination-address {{ addr }}
+{% endfor %}
+{% for app in rule['match_rules']['applications'] %}
+set security policies from-zone {{ rule['src_zone'] }} to-zone {{ rule['dst_zone'] }} policy {{ rule['name'] }} match application {{ app }}
+{% endfor %}
+set security policies from-zone {{ rule['src_zone'] }} to-zone {{ rule['dst_zone'] }} policy {{ rule['name'] }} then {{ rule['action'] }}
+{% endfor %}
+
+{#
+sample data
+
+data:
+    fw_policy:
+        - name: PERMIT-WEB
+          src_zone: zone0
+          dst_zone: zone1
+          action: permit
+          match_rules:
+            src_addrs:
+                - any
+            dst_addrs:
+                - any
+            applications:
+                - HTTP
+                - HTTPS
+        - name: PERMIT-DNS
+          src_zone: zone0
+          dst_zone: zone1
+          action: permit
+          match_rules:
+            src_addrs:
+                - INTERNAL_BLOCK1
+                - INTERNAL_BLOCK2
+            dst_addrs:
+                - DNS_SERVERS
+            applications:
+                - DNS
+        - name: DENY-ALL
+          src_zone: zone0
+          dst_zone: zone1
+          action: deny
+          match_rules:
+            src_addrs:
+                - any
+            dst_addrs:
+                - any
+            applications:
+                - any
+#}

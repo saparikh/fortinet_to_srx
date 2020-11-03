@@ -1,0 +1,9 @@
+<group name="fw_service_groups">
+config firewall service group {{ _start_ }}
+    <group name="app_groups">
+    edit {{ app_group | chain("clean_phrase") | _start_ }}
+        set member {{ apps | ROW | macro("build_list") }}
+    next {{ _end_ }}
+    </group>
+end {{ _end_ }}
+</group>

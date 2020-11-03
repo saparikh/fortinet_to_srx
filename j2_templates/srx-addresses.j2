@@ -1,0 +1,31 @@
+{% for address in data['addresses'] %}
+{% if address['type'] == 'iprange' %}
+set security address-book global address {{ address['name'] }} range-address {{ address['start_ip'] }} to {{  address['end_ip'] }}
+{% elif address['type'] == 'ipmask' %}
+set security address-book global address {{ address['name'] }} {{ address['ip'] }}
+{% endif %}
+{% endfor %}
+
+{% for group in data['address_groups'] %}
+{% for address in group['addresses'] %}
+set security address-book global address-set {{ group['name'] }} address {{ address }}
+{% endfor %}
+{% endfor %}
+
+{#  sample input dict
+
+data:
+    addresses:
+        - name: FOO
+          type: iprange
+          start_ip: 1.1.1.1
+          end_ip: 1.1.1.10
+        - name: BAR
+          type: ipmask
+          ip: 10.1.1.0/24
+    address_groups:
+        - name: FOO_BAR
+          addresses:
+            - FOO
+            - BAR
+#}
